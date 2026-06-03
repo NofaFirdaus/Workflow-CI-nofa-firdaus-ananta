@@ -38,7 +38,7 @@ DATA_PATH = os.path.join(
     "hok_preprocessing.csv"
 )
 
-
+dagshub.auth.add_app_token(token=os.environ["DAGSHUB_TOKEN"])
 
 dagshub.init(repo_owner='NofaFirdaus', repo_name='sistem-machine-learning', mlflow=True)
 
