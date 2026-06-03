@@ -60,7 +60,7 @@ jobs:
             -P batch_size=8 \
             -P epochs=3 \
             -P max_len=128 \
-            mlflow run MLProject/ --env-manager=conda
+            --env-manager=conda
 
       # --------------------------------------------------------
       # 6. Get latest MLflow run_id
