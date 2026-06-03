@@ -14,6 +14,10 @@ jobs:
     environment: WORKFLOW-CI-ML
 
     steps:
+      - name: Test Internet to Hugging Face
+        run: |
+          curl -I https://huggingface.co
+    
       - name: Check Environment Secrets
         env:
           DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
