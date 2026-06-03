@@ -14,6 +14,20 @@ jobs:
     environment: WORKFLOW-CI-ML
 
     steps:
+      - name: Check Environment Secrets
+        env:
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "Checking secrets..."
+           [ -n "$DAGSHUB_USERNAME" ] && echo "DAGSHUB_USERNAME OK" || echo "DAGSHUB_USERNAME EMPTY"
+           [ -n "$DAGSHUB_TOKEN" ] && echo "DAGSHUB_TOKEN OK" || echo "DAGSHUB_TOKEN EMPTY"
+           [ -n "$DOCKERHUB_USERNAME" ] && echo "DOCKERHUB_USERNAME OK" || echo "DOCKERHUB_USERNAME EMPTY"
+           [ -n "$DOCKERHUB_TOKEN" ] && echo "DOCKERHUB_TOKEN OK" || echo "DOCKERHUB_TOKEN EMPTY"
+
+    
       # --------------------------------------------------------
       # 1. Checkout
       # --------------------------------------------------------
