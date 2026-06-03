@@ -110,6 +110,7 @@ model = TFBertForSequenceClassification.from_pretrained(
 optimizer = tf_keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 loss_fn   = tf_keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 model.compile(optimizer=optimizer, loss=loss_fn, metrics=["accuracy"])
+os.environ.pop("MLFLOW_RUN_ID", None)
 
 
 with mlflow.start_run(run_name="IndoBERT_CI"):
