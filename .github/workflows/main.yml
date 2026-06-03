@@ -11,6 +11,7 @@ on:
 jobs:
   train-and-deploy:
     runs-on: ubuntu-latest
+    environment: WORKFLOW-CI-ML
 
     steps:
       # --------------------------------------------------------
