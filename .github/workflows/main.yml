@@ -1,0 +1,148 @@
+name: Workflow CI - HOK Sentiment IndoBERT
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MLProject/**'
+  workflow_dispatch:
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --------------------------------------------------------
+      # 1. Checkout
+      # --------------------------------------------------------
+      - name: Run actions/checkout@v3
+        uses: actions/checkout@v3
+
+      # --------------------------------------------------------
+      # 2. Setup Python
+      # --------------------------------------------------------
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12.7"
+
+      # --------------------------------------------------------
+      # 3. Check Env
+      # --------------------------------------------------------
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+          echo "Working directory: $(pwd)"
+          ls -la MLProject/
+
+      # --------------------------------------------------------
+      # 4. Install dependencies
+      # --------------------------------------------------------
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install mlflow==2.13.0 dagshub==0.3.26
+
+      # --------------------------------------------------------
+      # 5. Run MLflow Project
+      # --------------------------------------------------------
+      - name: Run mlflow project
+        env:
+          DAGSHUB_USERNAME:         ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN:            ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          mlflow run MLProject/ \
+            -P learning_rate=2e-5 \
+            -P batch_size=8 \
+            -P epochs=3 \
+            -P max_len=128 \
+            --env-manager=conda
+
+      # --------------------------------------------------------
+      # 6. Get latest MLflow run_id
+      # --------------------------------------------------------
+      - name: Get latest MLflow run_id
+        run: |
+          RUN_ID=$(cat MLProject/run_id.txt)
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "Latest run_id: $RUN_ID"
+
+      # --------------------------------------------------------
+      # 7. Install Python dependencies (untuk upload artefak)
+      # --------------------------------------------------------
+      - name: Install Python dependencies
+        run: |
+          pip install mlflow==2.13.0
+
+      # --------------------------------------------------------
+      # 8. Upload Artefak ke GitHub (same repo)
+      # --------------------------------------------------------
+      - name: Upload to GitHub
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Buat folder artefak dengan run_id
+          mkdir -p artifacts/${{ env.RUN_ID }}
+
+          # Copy artefak dari mlruns
+          if [ -d "mlruns" ]; then
+            cp -r mlruns/ artifacts/${{ env.RUN_ID }}/mlruns
+          fi
+
+          # Copy model
+          if [ -d "MLProject/indobert_model" ]; then
+            cp -r MLProject/indobert_model/ artifacts/${{ env.RUN_ID }}/indobert_model
+          fi
+
+          # Copy run_id.txt
+          cp MLProject/run_id.txt artifacts/${{ env.RUN_ID }}/run_id.txt
+
+          git add artifacts/
+          git diff --staged --quiet || git commit -m "ci: upload artifacts run_id=${{ env.RUN_ID }} [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --------------------------------------------------------
+      # 9. Build Docker Image
+      # --------------------------------------------------------
+      - name: Build Docker Model
+        env:
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          mlflow models build-docker \
+            --model-uri "runs:/${{ env.RUN_ID }}/model" \
+            --name ${{ secrets.DOCKERHUB_USERNAME }}/hok-sentiment-indobert \
+            --enable-mlserver
+
+      # --------------------------------------------------------
+      # 10. Login Docker Hub
+      # --------------------------------------------------------
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # --------------------------------------------------------
+      # 11. Tag Docker Image
+      # --------------------------------------------------------
+      - name: Tag Docker Image
+        run: |
+          docker tag \
+            ${{ secrets.DOCKERHUB_USERNAME }}/hok-sentiment-indobert:latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/hok-sentiment-indobert:${{ env.RUN_ID }}
+
+      # --------------------------------------------------------
+      # 12. Push Docker Image
+      # --------------------------------------------------------
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/hok-sentiment-indobert:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/hok-sentiment-indobert:${{ env.RUN_ID }}
