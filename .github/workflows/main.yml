@@ -115,6 +115,10 @@ jobs:
         run: |
           pip install mlflow==2.13.0
 
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+          git lfs pull
    # --------------------------------------------------------
 # 8. Save Run Metadata to GitHub
 # --------------------------------------------------------
