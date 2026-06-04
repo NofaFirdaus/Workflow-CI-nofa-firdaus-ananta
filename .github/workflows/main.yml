@@ -12,6 +12,7 @@ jobs:
   train-and-deploy:
     runs-on: ubuntu-latest
     environment: WORKFLOW-CI-ML
+    timeout-minutes: 1440
 
     steps:
       - name: Test Internet to Hugging Face
@@ -92,7 +93,7 @@ jobs:
           mlflow run MLProject/ \
             -P learning_rate=2e-5 \
             -P batch_size=8 \
-            -P epochs=3 \
+            -P epochs=1 \
             -P max_len=128 \
             --env-manager=conda
 
