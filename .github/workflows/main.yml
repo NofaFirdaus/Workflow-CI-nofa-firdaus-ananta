@@ -123,10 +123,26 @@ jobs:
           git config --global user.name "NofaFirdaus"
           git config --global user.email "nofafirdaus17@gmail.com"
       
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
+          mkdir -p artifacts/${{ env.RUN_ID }}
+      
+          if [ -d "mlruns" ]; then
+            cp -r mlruns artifacts/${{ env.RUN_ID }}/
+          fi
+      
+          if [ -d "MLProject/indobert_model" ]; then
+            cp -r MLProject/indobert_model artifacts/${{ env.RUN_ID }}/
+          fi
+      
+          if [ -f "MLProject/run_id.txt" ]; then
+            cp MLProject/run_id.txt artifacts/${{ env.RUN_ID }}/
+          fi
+      
+          ls -R artifacts
       
           git add artifacts/
-          git diff --staged --quiet || git commit -m "ci: upload artifacts run_id=${{ env.RUN_ID }} [skip ci]"
+      
+          git diff --staged --quiet || \
+            git commit -m "ci: upload artifacts run_id=${{ env.RUN_ID }} [skip ci]"
           git push
 
       # --------------------------------------------------------
