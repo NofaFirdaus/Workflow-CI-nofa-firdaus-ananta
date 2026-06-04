@@ -38,6 +38,8 @@ jobs:
       # --------------------------------------------------------
       - name: Run actions/checkout@v3
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
 
       # --------------------------------------------------------
       # 2. Setup Python
@@ -118,30 +120,14 @@ jobs:
       # --------------------------------------------------------
       - name: Upload to GitHub
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Buat folder artefak dengan run_id
-          mkdir -p artifacts/${{ env.RUN_ID }}
-
-          # Copy artefak dari mlruns
-          if [ -d "mlruns" ]; then
-            cp -r mlruns/ artifacts/${{ env.RUN_ID }}/mlruns
-          fi
-
-          # Copy model
-          if [ -d "MLProject/indobert_model" ]; then
-            cp -r MLProject/indobert_model/ artifacts/${{ env.RUN_ID }}/indobert_model
-          fi
-
-          # Copy run_id.txt
-          cp MLProject/run_id.txt artifacts/${{ env.RUN_ID }}/run_id.txt
-
+          git config --global user.name "NofaFirdaus"
+          git config --global user.email "nofafirdaus17@gmail.com"
+      
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
+      
           git add artifacts/
           git diff --staged --quiet || git commit -m "ci: upload artifacts run_id=${{ env.RUN_ID }} [skip ci]"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # --------------------------------------------------------
       # 9. Build Docker Image
