@@ -115,36 +115,32 @@ jobs:
         run: |
           pip install mlflow==2.13.0
 
-      # --------------------------------------------------------
-      # 8. Upload Artefak ke GitHub (same repo)
-      # --------------------------------------------------------
-      - name: Upload to GitHub
+   # --------------------------------------------------------
+# 8. Save Run Metadata to GitHub
+# --------------------------------------------------------
+      - name: Save Run Metadata
         run: |
           git config --global user.name "NofaFirdaus"
           git config --global user.email "nofafirdaus17@gmail.com"
       
           mkdir -p artifacts/${{ env.RUN_ID }}
       
-          if [ -d "mlruns" ]; then
-            cp -r mlruns artifacts/${{ env.RUN_ID }}/
-          fi
+          # Simpan run_id
+          cp MLProject/run_id.txt artifacts/${{ env.RUN_ID }}/
       
-          if [ -d "MLProject/indobert_model" ]; then
-            cp -r MLProject/indobert_model artifacts/${{ env.RUN_ID }}/
-          fi
-      
-          if [ -f "MLProject/run_id.txt" ]; then
-            cp MLProject/run_id.txt artifacts/${{ env.RUN_ID }}/
-          fi
-      
-          ls -R artifacts
+          # Simpan informasi lokasi model
+          cat > artifacts/${{ env.RUN_ID }}/artifact_info.txt << EOF
+          Artifact Storage: DagsHub MLflow Artifact Store
+          Run ID: ${{ env.RUN_ID }}
+          Repository: ${{ secrets.DAGSHUB_USERNAME }}
+          EOF
       
           git add artifacts/
       
           git diff --staged --quiet || \
-            git commit -m "ci: upload artifacts run_id=${{ env.RUN_ID }} [skip ci]"
+            git commit -m "ci: save metadata run_id=${{ env.RUN_ID }} [skip ci]"
+      
           git push
-
       # --------------------------------------------------------
       # 9. Build Docker Image
       # --------------------------------------------------------
