@@ -86,7 +86,7 @@ jobs:
           DAGSHUB_TOKEN:            ${{ secrets.DAGSHUB_TOKEN }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
-          HF_HUB_DOWNLOAD_TIMEOUT: "120"      # tambah ini
+          HF_HUB_DOWNLOAD_TIMEOUT: "1440"      # tambah ini
           TRANSFORMERS_OFFLINE: "0" 
         run: |
           mlflow run MLProject/ \
