@@ -134,20 +134,20 @@ jobs:
         run: |
           git config --global user.name "NofaFirdaus"
           git config --global user.email "nofafirdaus17@gmail.com"
-
+      
           mkdir -p artifacts/${{ env.RUN_ID }}
-
           cp MLProject/run_id.txt artifacts/${{ env.RUN_ID }}/
-
+      
           cat > artifacts/${{ env.RUN_ID }}/artifact_info.txt << EOF
           Artifact Storage: DagsHub MLflow Artifact Store
           Run ID: ${{ env.RUN_ID }}
           Repository: ${{ secrets.DAGSHUB_USERNAME }}
           EOF
-
+      
           git add artifacts/
           git diff --staged --quiet || \
             git commit -m "ci: save metadata run_id=${{ env.RUN_ID }} [skip ci]"
+          git pull --rebase origin main
           git push
 
       # --------------------------------------------------------
