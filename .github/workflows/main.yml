@@ -155,6 +155,7 @@ jobs:
       # --------------------------------------------------------
       - name: Build Docker Model
         env:
+          MLFLOW_TRACKING_URI:      https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/sistem-machine-learning.mlflow
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
